@@ -18,75 +18,146 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            padding: 2rem;
+            color: #333;
         }
         
         .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 2rem;
             text-align: center;
-            max-width: 600px;
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
         
         .logo {
-            font-size: 3rem;
+            font-size: 4rem;
             margin-bottom: 1rem;
         }
         
         h1 {
             font-size: 2.5rem;
             margin-bottom: 0.5rem;
-            background: linear-gradient(45deg, #fff, #f0f0f0);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-weight: 700;
         }
         
         .status {
-            display: inline-block;
-            background: #4ade80;
-            color: #065f46;
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
             padding: 0.5rem 1rem;
             border-radius: 50px;
-            font-weight: bold;
+            font-weight: 600;
             margin: 1rem 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
         
         .version {
-            color: #cbd5e1;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .section {
             margin-bottom: 2rem;
         }
         
-        .endpoints {
-            text-align: left;
-            background: rgba(255, 255, 255, 0.05);
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-icon {
+            margin-right: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .endpoints-grid {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .endpoint-group {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
             padding: 1.5rem;
-            border-radius: 10px;
-            margin: 1rem 0;
+        }
+        
+        .group-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .group-icon {
+            margin-right: 0.5rem;
+            font-size: 0.9rem;
         }
         
         .endpoint {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e2e8f0;
         }
         
         .endpoint:last-child {
             border-bottom: none;
         }
         
+        .endpoint-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
         .method {
-            background: #3b82f6;
             color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: bold;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            min-width: 60px;
+            text-align: center;
+        }
+        
+        .method.get {
+            background: #3b82f6;
         }
         
         .method.post {
@@ -97,57 +168,176 @@
             background: #f59e0b;
         }
         
-        .path {
-            font-family: 'Courier New', monospace;
-            color: #e2e8f0;
+        .method.delete {
+            background: #ef4444;
         }
         
-        .footer {
-            margin-top: 2rem;
-            color: #94a3b8;
+        .path {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            color: #475569;
             font-size: 0.9rem;
         }
         
-        .timestamp {
+        .description {
             color: #64748b;
             font-size: 0.8rem;
-            margin-top: 1rem;
+            margin-top: 0.25rem;
+        }
+        
+        .footer {
+            background: #f8fafc;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .footer-text {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .timestamp {
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 0.25rem;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">🤖</div>
-        <h1>AI Networking Companion</h1>
-        <div class="status">🟢 Server Running</div>
-        <div class="version">Version 1.0.0</div>
+        <div class="header">
+            <div class="logo">🤖</div>
+            <h1>AI Networking Companion</h1>
+            <div class="status">
+                <div class="status-dot"></div>
+                Server Running
+            </div>
+            <div class="version">Version 1.0.0</div>
+        </div>
         
-        <div class="endpoints">
-            <h3 style="margin-bottom: 1rem; color: #e2e8f0;">API Endpoints</h3>
-            <div class="endpoint">
-                <span class="method">GET</span>
-                <span class="path">/health</span>
+        <div class="content">
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">📊</span>
+                    API Statistics
+                </h2>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value">5</div>
+                        <div class="stat-label">Endpoints</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">100%</div>
+                        <div class="stat-label">Uptime</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">2</div>
+                        <div class="stat-label">Groups</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">JWT</div>
+                        <div class="stat-label">Auth</div>
+                    </div>
+                </div>
             </div>
-            <div class="endpoint">
-                <span class="method post">POST</span>
-                <span class="path">/api/auth/register</span>
-            </div>
-            <div class="endpoint">
-                <span class="method post">POST</span>
-                <span class="path">/api/auth/login</span>
-            </div>
-            <div class="endpoint">
-                <span class="method">GET</span>
-                <span class="path">/api/auth/me</span>
-            </div>
-            <div class="endpoint">
-                <span class="method put">PUT</span>
-                <span class="path">/api/auth/profile</span>
+            
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">🔗</span>
+                    API Endpoints
+                </h2>
+                <div class="endpoints-grid">
+                    <div class="endpoint-group">
+                        <div class="group-title">
+                            <span class="group-icon">🔍</span>
+                            System
+                        </div>
+                        <div class="endpoint">
+                            <div class="endpoint-left">
+                                <span class="method get">GET</span>
+                                <div>
+                                    <div class="path">/health</div>
+                                    <div class="description">Check server health status</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="endpoint-group">
+                        <div class="group-title">
+                            <span class="group-icon">🔐</span>
+                            Authentication
+                        </div>
+                        <div class="endpoint">
+                            <div class="endpoint-left">
+                                <span class="method post">POST</span>
+                                <div>
+                                    <div class="path">/api/auth/register</div>
+                                    <div class="description">Create new user account</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="endpoint">
+                            <div class="endpoint-left">
+                                <span class="method post">POST</span>
+                                <div>
+                                    <div class="path">/api/auth/login</div>
+                                    <div class="description">Authenticate user login</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="endpoint">
+                            <div class="endpoint-left">
+                                <span class="method get">GET</span>
+                                <div>
+                                    <div class="path">/api/auth/me</div>
+                                    <div class="description">Get current user profile</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="endpoint">
+                            <div class="endpoint-left">
+                                <span class="method put">PUT</span>
+                                <div>
+                                    <div class="path">/api/auth/profile</div>
+                                    <div class="description">Update user profile</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         
         <div class="footer">
-            <p>🚀 Ready to power your AI networking experience!</p>
+            <div class="footer-text">🚀 Ready to power your AI networking experience!</div>
             <div class="timestamp">Last updated: {{timestamp}}</div>
         </div>
     </div>
