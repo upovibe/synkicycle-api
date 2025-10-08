@@ -10,7 +10,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #ffffff;
@@ -18,7 +18,7 @@
             padding: 2rem;
             color: #333;
         }
-        
+
         .container {
             max-width: 1200px;
             width: 100%;
@@ -29,25 +29,25 @@
             overflow: hidden;
             border: 1px solid #e2e8f0;
         }
-        
+
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 3rem 2rem;
             text-align: center;
         }
-        
+
         .logo {
             font-size: 4rem;
             margin-bottom: 1rem;
         }
-        
+
         h1 {
             font-size: 2.5rem;
             margin-bottom: 0.5rem;
             font-weight: 700;
         }
-        
+
         .status {
             display: inline-flex;
             align-items: center;
@@ -59,7 +59,7 @@
             margin: 1rem 0;
             backdrop-filter: blur(10px);
         }
-        
+
         .status-dot {
             width: 8px;
             height: 8px;
@@ -68,25 +68,25 @@
             margin-right: 0.5rem;
             animation: pulse 2s infinite;
         }
-        
+
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
-        
+
         .version {
             color: rgba(255, 255, 255, 0.8);
             font-size: 0.9rem;
         }
-        
+
         .content {
             padding: 2rem;
         }
-        
+
         .section {
             margin-bottom: 2rem;
         }
-        
+
         .section-title {
             font-size: 1.2rem;
             font-weight: 600;
@@ -95,38 +95,38 @@
             display: flex;
             align-items: center;
         }
-        
+
         .section-icon {
             margin-right: 0.5rem;
             font-size: 1.1rem;
         }
-        
+
         .endpoints-grid {
             display: grid;
             gap: 1rem;
         }
-        
+
         .endpoint-group {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
             padding: 1.5rem;
         }
-        
+
         .group-title {
             font-size: 1rem;
             font-weight: 600;
             color: #475569;
-            margin-bottom: 1rem;
             display: flex;
             align-items: center;
+            margin-bottom: 1rem;
         }
-        
+
         .group-icon {
             margin-right: 0.5rem;
             font-size: 0.9rem;
         }
-        
+
         .endpoint {
             display: flex;
             justify-content: space-between;
@@ -134,17 +134,17 @@
             padding: 0.75rem 0;
             border-bottom: 1px solid #e2e8f0;
         }
-        
+
         .endpoint:last-child {
             border-bottom: none;
         }
-        
+
         .endpoint-left {
             display: flex;
             align-items: center;
             gap: 0.75rem;
         }
-        
+
         .method {
             color: white;
             padding: 0.25rem 0.75rem;
@@ -154,60 +154,60 @@
             min-width: 60px;
             text-align: center;
         }
-        
+
         .method.get {
             background: #3b82f6;
         }
-        
+
         .method.post {
             background: #10b981;
         }
-        
+
         .method.put {
             background: #f59e0b;
         }
-        
+
         .method.delete {
             background: #ef4444;
         }
-        
+
         .path {
             font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
             color: #475569;
             font-size: 0.9rem;
         }
-        
+
         .description {
             color: #64748b;
             font-size: 0.8rem;
             margin-top: 0.25rem;
         }
-        
+
         .footer {
             background: #f8fafc;
             padding: 1.5rem 2rem;
             text-align: center;
             border-top: 1px solid #e2e8f0;
         }
-        
+
         .footer-text {
             color: #64748b;
             font-size: 0.9rem;
             margin-bottom: 0.5rem;
         }
-        
+
         .timestamp {
             color: #94a3b8;
             font-size: 0.8rem;
         }
-        
+
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
         }
-        
+
         .stat {
             background: #f8fafc;
             padding: 1rem;
@@ -215,63 +215,17 @@
             text-align: center;
             border: 1px solid #e2e8f0;
         }
-        
+
         .stat-value {
             font-size: 1.5rem;
             font-weight: 700;
             color: #1f2937;
         }
-        
+
         .stat-label {
             font-size: 0.8rem;
             color: #64748b;
             margin-top: 0.25rem;
-        }
-        
-        .accordion {
-            cursor: pointer;
-            user-select: none;
-            transition: all 0.3s ease;
-        }
-        
-        .accordion:hover {
-            background: #f1f5f9;
-        }
-        
-        .accordion.active {
-            background: #f8fafc;
-        }
-        
-        .accordion-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        
-        .accordion-icon {
-            transition: transform 0.3s ease;
-            font-size: 1.2rem;
-            color: #64748b;
-        }
-        
-        .accordion.active .accordion-icon {
-            transform: rotate(180deg);
-        }
-        
-        .accordion-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-        
-        .accordion.active .accordion-content {
-            max-height: 1000px;
-        }
-        
-        .accordion-body {
-            padding: 1.5rem;
         }
     </style>
 </head>
@@ -279,12 +233,12 @@
     <div class="container">
         <div class="header">
             <div class="logo">🤖</div>
-            <h1>AI Networking Companion</h1>
+            <h1>AI Networking Companion API</h1>
             <div class="status">
                 <div class="status-dot"></div>
                 Server Running
             </div>
-            <div class="version">Version 1.0.0</div>
+            <div class="version">v1.0.0</div>
         </div>
         
         <div class="content">
@@ -295,20 +249,20 @@
                 </h2>
                 <div class="stats">
                     <div class="stat">
-                        <div class="stat-value">9</div>
-                        <div class="stat-label">Endpoints</div>
+                        <div class="stat-value">12</div>
+                        <div class="stat-label">Total Endpoints</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">3</div>
+                        <div class="stat-label">API Groups</div>
                     </div>
                     <div class="stat">
                         <div class="stat-value">100%</div>
                         <div class="stat-label">Uptime</div>
                     </div>
                     <div class="stat">
-                        <div class="stat-value">3</div>
-                        <div class="stat-label">Groups</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">JWT</div>
-                        <div class="stat-label">Auth</div>
+                        <div class="stat-value">⚡</div>
+                        <div class="stat-label">Real-time</div>
                     </div>
                 </div>
             </div>
@@ -319,127 +273,106 @@
                     API Endpoints
                 </h2>
                 <div class="endpoints-grid">
-                    <!-- System Group -->
-                    <div class="endpoint-group accordion active">
-                        <div class="accordion-header" onclick="toggleAccordion(this)">
-                            <div class="group-title">
-                                <span class="group-icon">🔍</span>
-                                System
-                            </div>
-                            <span class="accordion-icon">▼</span>
+                    <!-- System -->
+                    <div class="endpoint-group">
+                        <div class="group-title">
+                            <span class="group-icon">🔍</span>
+                            System
                         </div>
-                        <div class="accordion-content">
-                            <div class="accordion-body">
-                                <div class="endpoint">
-                                    <div class="endpoint-left">
-                                        <span class="method get">GET</span>
-                                        <div>
-                                            <div class="path">/health</div>
-                                            <div class="description">Check server health status</div>
-                                        </div>
-                                    </div>
+                        <div class="endpoint">
+                            <div class="endpoint-left">
+                                <span class="method get">GET</span>
+                                <div>
+                                    <div class="path">/</div>
+                                    <div class="description">Server status page</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Authentication Group -->
-                    <div class="endpoint-group accordion active">
-                        <div class="accordion-header" onclick="toggleAccordion(this)">
-                            <div class="group-title">
-                                <span class="group-icon">🔐</span>
-                                Authentication
-                            </div>
-                            <span class="accordion-icon">▼</span>
+                    <!-- Authentication -->
+                    <div class="endpoint-group">
+                        <div class="group-title">
+                            <span class="group-icon">🔐</span>
+                            Authentication
                         </div>
-                        <div class="accordion-content">
-                            <div class="accordion-body">
-                                <div class="endpoint">
-                                    <div class="endpoint-left">
-                                        <span class="method post">POST</span>
-                                        <div>
-                                            <div class="path">/api/auth/register</div>
-                                            <div class="description">Create new user account</div>
-                                        </div>
-                                    </div>
+                        <div class="endpoint">
+                            <div class="endpoint-left">
+                                <span class="method post">POST</span>
+                                <div>
+                                    <div class="path">/api/auth/register</div>
+                                    <div class="description">Create new user account</div>
                                 </div>
-                                <div class="endpoint">
-                                    <div class="endpoint-left">
-                                        <span class="method post">POST</span>
-                                        <div>
-                                            <div class="path">/api/auth/login</div>
-                                            <div class="description">Authenticate user login</div>
-                                        </div>
-                                    </div>
+                            </div>
+                        </div>
+                        <div class="endpoint">
+                            <div class="endpoint-left">
+                                <span class="method post">POST</span>
+                                <div>
+                                    <div class="path">/api/auth/login</div>
+                                    <div class="description">Authenticate user login</div>
                                 </div>
-                                <div class="endpoint">
-                                    <div class="endpoint-left">
-                                        <span class="method get">GET</span>
-                                        <div>
-                                            <div class="path">/api/auth/me</div>
-                                            <div class="description">Get current user profile</div>
-                                        </div>
-                                    </div>
+                            </div>
+                        </div>
+                        <div class="endpoint">
+                            <div class="endpoint-left">
+                                <span class="method get">GET</span>
+                                <div>
+                                    <div class="path">/api/auth/me</div>
+                                    <div class="description">Get current user profile</div>
                                 </div>
-                                <div class="endpoint">
-                                    <div class="endpoint-left">
-                                        <span class="method put">PUT</span>
-                                        <div>
-                                            <div class="path">/api/auth/profile</div>
-                                            <div class="description">Update user profile</div>
-                                        </div>
-                                    </div>
+                            </div>
+                        </div>
+                        <div class="endpoint">
+                            <div class="endpoint-left">
+                                <span class="method put">PUT</span>
+                                <div>
+                                    <div class="path">/api/auth/profile</div>
+                                    <div class="description">Update user profile</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Real-time Socket.io Group -->
-                    <div class="endpoint-group accordion active">
-                        <div class="accordion-header" onclick="toggleAccordion(this)">
-                            <div class="group-title">
-                                <span class="group-icon">⚡</span>
-                                Real-time (Socket.io)
-                            </div>
-                            <span class="accordion-icon">▼</span>
+                    <!-- Real-time Socket.io -->
+                    <div class="endpoint-group">
+                        <div class="group-title">
+                            <span class="group-icon">⚡</span>
+                            Real-time Socket.io
                         </div>
-                        <div class="accordion-content">
-                            <div class="accordion-body">
-                                <div class="endpoint">
-                                    <div class="endpoint-left">
-                                        <span class="method get">GET</span>
-                                        <div>
-                                            <div class="path">/api/socket/connected-users</div>
-                                            <div class="description">Get list of connected users</div>
-                                        </div>
-                                    </div>
+                        <div class="endpoint">
+                            <div class="endpoint-left">
+                                <span class="method get">GET</span>
+                                <div>
+                                    <div class="path">/api/socket/connected-users</div>
+                                    <div class="description">Get list of connected users</div>
                                 </div>
-                                <div class="endpoint">
-                                    <div class="endpoint-left">
-                                        <span class="method get">GET</span>
-                                        <div>
-                                            <div class="path">/api/socket/user/:userId/online</div>
-                                            <div class="description">Check if user is online</div>
-                                        </div>
-                                    </div>
+                            </div>
+                        </div>
+                        <div class="endpoint">
+                            <div class="endpoint-left">
+                                <span class="method get">GET</span>
+                                <div>
+                                    <div class="path">/api/socket/user/:userId/online</div>
+                                    <div class="description">Check if user is online</div>
                                 </div>
-                                <div class="endpoint">
-                                    <div class="endpoint-left">
-                                        <span class="method post">POST</span>
-                                        <div>
-                                            <div class="path">/api/socket/notify/:userId</div>
-                                            <div class="description">Send notification to user</div>
-                                        </div>
-                                    </div>
+                            </div>
+                        </div>
+                        <div class="endpoint">
+                            <div class="endpoint-left">
+                                <span class="method post">POST</span>
+                                <div>
+                                    <div class="path">/api/socket/notify/:userId</div>
+                                    <div class="description">Send notification to user</div>
                                 </div>
-                                <div class="endpoint">
-                                    <div class="endpoint-left">
-                                        <span class="method post">POST</span>
-                                        <div>
-                                            <div class="path">/api/socket/broadcast</div>
-                                            <div class="description">Broadcast message to all users</div>
-                                        </div>
-                                    </div>
+                            </div>
+                        </div>
+                        <div class="endpoint">
+                            <div class="endpoint-left">
+                                <span class="method post">POST</span>
+                                <div>
+                                    <div class="path">/api/socket/broadcast</div>
+                                    <div class="description">Broadcast message to all users</div>
                                 </div>
                             </div>
                         </div>
@@ -453,12 +386,5 @@
             <div class="timestamp">Last updated: {{timestamp}}</div>
         </div>
     </div>
-    
-    <script>
-        function toggleAccordion(header) {
-            const accordion = header.parentElement;
-            accordion.classList.toggle('active');
-        }
-    </script>
 </body>
 </html>
