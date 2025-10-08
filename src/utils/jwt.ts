@@ -12,7 +12,7 @@ export interface JwtPayload {
 export const generateToken = (payload: JwtPayload): string => {
   return jwt.sign(payload, config.JWT_SECRET, {
     expiresIn: config.JWT_EXPIRE,
-  });
+  } as jwt.SignOptions);
 };
 
 /**
@@ -21,7 +21,7 @@ export const generateToken = (payload: JwtPayload): string => {
 export const verifyToken = (token: string): JwtPayload => {
   try {
     return jwt.verify(token, config.JWT_SECRET) as JwtPayload;
-  } catch (error) {
+  } catch {
     throw new Error('Invalid or expired token');
   }
 };
