@@ -8,6 +8,7 @@ interface AuthenticatedSocket extends Socket {
   userId?: string;
   user?: {
     _id: string;
+    username: string;
     name: string;
     email: string;
     [key: string]: unknown;
@@ -51,6 +52,7 @@ export class SocketService {
         (socket as AuthenticatedSocket).userId = user._id.toString();
         (socket as AuthenticatedSocket).user = {
           _id: user._id.toString(),
+          username: user.username,
           name: user.name,
           email: user.email,
         };
