@@ -250,7 +250,7 @@
                 </h2>
                 <div class="stats">
                     <div class="stat">
-                        <div class="stat-value">5</div>
+                        <div class="stat-value">9</div>
                         <div class="stat-label">Endpoints</div>
                     </div>
                     <div class="stat">
@@ -258,7 +258,7 @@
                         <div class="stat-label">Uptime</div>
                     </div>
                     <div class="stat">
-                        <div class="stat-value">2</div>
+                        <div class="stat-value">3</div>
                         <div class="stat-label">Groups</div>
                     </div>
                     <div class="stat">
@@ -328,6 +328,49 @@
                                 <div>
                                     <div class="path">/api/auth/profile</div>
                                     <div class="description">Update user profile</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="endpoint-group">
+                        <div class="group-title">
+                            <span class="group-icon">⚡</span>
+                            Real-time (Socket.io)
+                        </div>
+                        <div class="endpoint">
+                            <div class="endpoint-left">
+                                <span class="method get">GET</span>
+                                <div>
+                                    <div class="path">/api/socket/connected-users</div>
+                                    <div class="description">Get list of connected users</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="endpoint">
+                            <div class="endpoint-left">
+                                <span class="method get">GET</span>
+                                <div>
+                                    <div class="path">/api/socket/user/:userId/online</div>
+                                    <div class="description">Check if user is online</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="endpoint">
+                            <div class="endpoint-left">
+                                <span class="method post">POST</span>
+                                <div>
+                                    <div class="path">/api/socket/notify/:userId</div>
+                                    <div class="description">Send notification to user</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="endpoint">
+                            <div class="endpoint-left">
+                                <span class="method post">POST</span>
+                                <div>
+                                    <div class="path">/api/socket/broadcast</div>
+                                    <div class="description">Broadcast message to all users</div>
                                 </div>
                             </div>
                         </div>

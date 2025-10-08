@@ -15,6 +15,7 @@
       "@controllers/*": ["controllers/*"],
       "@routes/*": ["routes/*"],
       "@middleware/*": ["middleware/*"],
+      "@services/*": ["services/*"],
       "@utils/*": ["utils/*"],
       "@types/*": ["types/*"]
     },

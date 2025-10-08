@@ -6,11 +6,14 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { createServer } from 'http';
 import { config } from '@config/env';
 import connectDB from '@config/database';
+import SocketService from '@services/socket.service';
 
 // Import routes
 import authRoutes from '@routes/auth.routes';
+import socketRoutes from '@routes/socket.routes';
 
 // Connect to database (for serverless functions)
 connectDB();
@@ -88,6 +91,7 @@ app.get('/health', (_req: Request, res: Response) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/socket', socketRoutes);
 
 // 404 Handler
 app.use((_req: Request, res: Response) => {
@@ -108,5 +112,15 @@ app.use((err: Error, _req: Request, res: Response, _next: express.NextFunction) 
   });
 });
 
+// Create HTTP server
+const server = createServer(app);
+
+// Initialize Socket.io service
+const socketService = new SocketService(server);
+
+// Make socket service available globally
+global.socketService = socketService;
+
 export default app;
+export { server, socketService };
 

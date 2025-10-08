@@ -1,4 +1,4 @@
-import app from './app';
+import { server } from './app';
 import connectDB from '@config/database';
 import { config } from '@config/env';
 
@@ -13,7 +13,7 @@ process.on('uncaughtException', (err: Error) => {
 connectDB();
 
 // Start server
-const server = app.listen(config.PORT, () => {
+server.listen(config.PORT, () => {
   console.log('');
   console.log('🚀 ========================================');
   console.log(`   AI Networking Companion API`);
@@ -21,6 +21,7 @@ const server = app.listen(config.PORT, () => {
   console.log(`   Environment: ${config.NODE_ENV}`);
   console.log(`   Server: http://localhost:${config.PORT}`);
   console.log(`   Health: http://localhost:${config.PORT}/health`);
+  console.log(`   Socket.io: http://localhost:${config.PORT}`);
   console.log('   ========================================');
   console.log('');
 });
