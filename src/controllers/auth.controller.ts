@@ -10,31 +10,13 @@ import { isValidEmail, isValidPassword, isValidName, isValidUsername } from '@ut
  */
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { username, name, email, password } = req.body;
+    const { email, password } = req.body;
 
     // Validate input
-    if (!username || !name || !email || !password) {
+    if (!email || !password) {
       res.status(400).json({
         success: false,
-        message: 'Please provide username, name, email, and password',
-      });
-      return;
-    }
-
-    // Validate username
-    if (!isValidUsername(username)) {
-      res.status(400).json({
-        success: false,
-        message: 'Username must be 3-30 characters and contain only lowercase letters, numbers, and underscores',
-      });
-      return;
-    }
-
-    // Validate name
-    if (!isValidName(name)) {
-      res.status(400).json({
-        success: false,
-        message: 'Name must be between 2 and 50 characters',
+        message: 'Please provide email and password',
       });
       return;
     }
@@ -57,16 +39,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Check if username already exists
-    const existingUsername = await User.findOne({ username });
-    if (existingUsername) {
-      res.status(400).json({
-        success: false,
-        message: 'Username already taken',
-      });
-      return;
-    }
-
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -77,10 +49,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Create user
+    // Create user (username and name will be set during profile setup)
     const user = await User.create({
-      username,
-      name,
       email,
       password,
       verified: true,
@@ -266,7 +236,43 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    const { name, phone, bio, profession, interests, avatar } = req.body;
+    const { username, name, phone, bio, profession, interests, avatar } = req.body;
+
+    // Validate username if provided
+    if (username) {
+      if (!isValidUsername(username)) {
+        res.status(400).json({
+          success: false,
+          message: 'Username must be 3-30 characters and contain only lowercase letters, numbers, and underscores',
+        });
+        return;
+      }
+
+      // Check if username is already taken by another user
+      const existingUser = await User.findOne({ 
+        username, 
+        _id: { $ne: user._id } 
+      });
+      
+      if (existingUser) {
+        res.status(400).json({
+          success: false,
+          message: 'Username already taken',
+        });
+        return;
+      }
+
+      user.username = username;
+    }
+
+    // Validate name if provided
+    if (name && !isValidName(name)) {
+      res.status(400).json({
+        success: false,
+        message: 'Name must be between 2 and 50 characters',
+      });
+      return;
+    }
 
     // Update fields
     if (name) user.name = name;

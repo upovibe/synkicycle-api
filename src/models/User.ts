@@ -5,10 +5,10 @@ import bcrypt from 'bcrypt';
 export interface IUser extends Document {
   _id: mongoose.Types.ObjectId;
   uuid: string;
-  username: string;
+  username?: string;
   email: string;
   password: string;
-  name: string;
+  name?: string;
   phone?: string;
   bio?: string;
   profession?: string;
@@ -33,8 +33,8 @@ const userSchema = new Schema<IUser>(
     },
     username: {
       type: String,
-      required: [true, 'Username is required'],
       unique: true,
+      sparse: true,
       lowercase: true,
       trim: true,
       minlength: [3, 'Username must be at least 3 characters'],
@@ -63,7 +63,6 @@ const userSchema = new Schema<IUser>(
     },
     name: {
       type: String,
-      required: [true, 'Name is required'],
       trim: true,
       minlength: [2, 'Name must be at least 2 characters'],
       maxlength: [50, 'Name cannot exceed 50 characters'],

@@ -8,8 +8,8 @@ interface AuthenticatedSocket extends Socket {
   userId?: string;
   user?: {
     _id: string;
-    username: string;
-    name: string;
+    username?: string;
+    name?: string;
     email: string;
     [key: string]: unknown;
   };
