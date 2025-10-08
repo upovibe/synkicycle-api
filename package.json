@@ -5,8 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only --clear -r tsconfig-paths/register src/index.ts",
-    "build": "tsc && cp -r src/views dist/",
-    "start": "node -r tsconfig-paths/register dist/index.js",
+    "build": "tsc",
+    "start": "node dist/index.js",
     "vercel-build": "npm run build",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
