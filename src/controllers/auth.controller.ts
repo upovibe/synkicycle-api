@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { User } from '@models/User';
 import { generateToken } from '@utils/jwt';
-import { isValidEmail, isValidPassword, isValidName } from '@utils/validation';
+import { isValidEmail, isValidPassword, isValidName, isValidUsername } from '@utils/validation';
 
 /**
  * @desc    Register new user
@@ -10,13 +10,22 @@ import { isValidEmail, isValidPassword, isValidName } from '@utils/validation';
  */
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, email, password } = req.body;
+    const { username, name, email, password } = req.body;
 
     // Validate input
-    if (!name || !email || !password) {
+    if (!username || !name || !email || !password) {
       res.status(400).json({
         success: false,
-        message: 'Please provide name, email, and password',
+        message: 'Please provide username, name, email, and password',
+      });
+      return;
+    }
+
+    // Validate username
+    if (!isValidUsername(username)) {
+      res.status(400).json({
+        success: false,
+        message: 'Username must be 3-30 characters and contain only lowercase letters, numbers, and underscores',
       });
       return;
     }
@@ -48,6 +57,16 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // Check if username already exists
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      res.status(400).json({
+        success: false,
+        message: 'Username already taken',
+      });
+      return;
+    }
+
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -60,6 +79,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     // Create user
     const user = await User.create({
+      username,
       name,
       email,
       password,
@@ -80,6 +100,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         user: {
           id: user._id,
           uuid: user.uuid,
+          username: user.username,
           name: user.name,
           email: user.email,
           avatar: user.avatar,
@@ -157,6 +178,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         user: {
           id: user._id,
           uuid: user.uuid,
+          username: user.username,
           name: user.name,
           email: user.email,
           phone: user.phone,
@@ -202,6 +224,7 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
         user: {
           id: user._id,
           uuid: user.uuid,
+          username: user.username,
           name: user.name,
           email: user.email,
           phone: user.phone,
@@ -262,6 +285,7 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
         user: {
           id: user._id,
           uuid: user.uuid,
+          username: user.username,
           name: user.name,
           email: user.email,
           phone: user.phone,

@@ -20,3 +20,11 @@ export const isValidName = (name: string): boolean => {
   return name.trim().length >= 2 && name.trim().length <= 50;
 };
 
+/**
+ * Validate username format
+ */
+export const isValidUsername = (username: string): boolean => {
+  const usernameRegex = /^[a-z0-9_]{3,30}$/;
+  return usernameRegex.test(username);
+};
+
