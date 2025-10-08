@@ -17,6 +17,9 @@ connectDB();
 
 const app: Application = express();
 
+// Trust proxy - required for Vercel/serverless
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 
