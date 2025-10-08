@@ -70,6 +70,7 @@ const userSchema = new Schema<IUser>(
     phone: {
       type: String,
       trim: true,
+      sparse: true, // Allows multiple null values for unique index
     },
     bio: {
       type: String,
