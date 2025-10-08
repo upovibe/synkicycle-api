@@ -7,9 +7,13 @@ import rateLimit from 'express-rate-limit';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { config } from '@config/env';
+import connectDB from '@config/database';
 
 // Import routes
 import authRoutes from '@routes/auth.routes';
+
+// Connect to database (for serverless functions)
+connectDB();
 
 const app: Application = express();
 
