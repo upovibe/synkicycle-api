@@ -47,6 +47,24 @@ const limiter = rateLimit({
 
 app.use('/api', limiter);
 
+// Root route - Server status page
+app.get('/', (_req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    message: '🚀 AI Networking Companion API is running!',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/health',
+      register: 'POST /api/auth/register',
+      login: 'POST /api/auth/login',
+      profile: 'GET /api/auth/me',
+      updateProfile: 'PUT /api/auth/profile'
+    },
+    documentation: 'Visit /health for server health check'
+  });
+});
+
 // Health check route
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({
