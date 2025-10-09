@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -149,14 +148,11 @@ async function seedDatabase() {
     const createdUsers: InstanceType<typeof User>[] = [];
     
     for (const userData of sampleUsers) {
-      // Hash password
-      const saltRounds = 12;
-      const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
-      
+      // Don't hash password here - the User model's pre('save') hook will handle it
       // Create user
       const user = new User({
         ...userData,
-        password: hashedPassword,
+        password: userData.password, // Use plain password, let the model hash it
         lastActive: new Date(),
         createdAt: new Date(),
         updatedAt: new Date()
