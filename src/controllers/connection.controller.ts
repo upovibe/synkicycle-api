@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { Connection } from '@models/Connection';
 import { User, IUser } from '@models/User';
+import { socketService } from '../app';
 
 interface AuthenticatedRequest extends Request {
   user?: IUser;
@@ -72,6 +73,14 @@ export const sendConnectionRequest = async (req: AuthenticatedRequest, res: Resp
       { path: 'initiator', select: 'name username email avatar' },
     ]);
 
+    // Emit Socket.io event to the receiver
+    if (socketService) {
+      socketService.sendToUser(receiverId, 'connection:new', {
+        connection,
+        message: 'You have a new connection request',
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'Connection request sent successfully',
@@ -142,7 +151,33 @@ export const respondToConnectionRequest = async (req: AuthenticatedRequest, res:
       return;
     }
 
-    // Update connection status
+    // Get participant IDs before potentially deleting
+    const participantIds = connection.participants.map(p => p.toString());
+
+    // If declining, delete the connection
+    if (status === 'declined') {
+      const connectionId = String(connection._id);
+      await Connection.findByIdAndDelete(connectionId);
+
+      // Emit Socket.io event to both participants
+      if (socketService) {
+        participantIds.forEach((participantId) => {
+          socketService.sendToUser(participantId, 'connection:deleted', {
+            connectionId,
+            message: 'Connection request cancelled',
+          });
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Connection request cancelled successfully',
+        data: { connectionId },
+      });
+      return;
+    }
+
+    // If accepting, update the status
     connection.status = status;
     await connection.save();
 
@@ -151,6 +186,16 @@ export const respondToConnectionRequest = async (req: AuthenticatedRequest, res:
       { path: 'participants', select: 'name username email avatar' },
       { path: 'initiator', select: 'name username email avatar' },
     ]);
+
+    // Emit Socket.io event to both participants
+    if (socketService) {
+      connection.participants.forEach((participant) => {
+        socketService.sendToUser(participant._id.toString(), 'connection:updated', {
+          connection,
+          message: `Connection ${status}`,
+        });
+      });
+    }
 
     res.status(200).json({
       success: true,
@@ -189,13 +234,16 @@ export const getUserConnections = async (req: AuthenticatedRequest, res: Respons
     const limitNum = parseInt(limit as string);
     const skip = (pageNum - 1) * limitNum;
 
-    // Build query
+    // Build query - exclude declined connections (they should be deleted)
     const query: Record<string, unknown> = {
       participants: { $in: [currentUser._id] },
     };
 
     if (status !== 'all') {
       query.status = status;
+    } else {
+      // Always exclude declined connections
+      query.status = { $ne: 'declined' };
     }
 
     // Get connections with pagination
