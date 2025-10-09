@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { User } from '@models/User';
+import { Connection } from '@models/Connection';
 import aiService from '@services/ai.service';
 
 /**
@@ -19,9 +20,23 @@ export const getMatches = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    // Get all other users (excluding current user)
+    // Get users who already have connections with current user (pending or accepted)
+    const existingConnections = await Connection.find({
+      participants: currentUser._id,
+      status: { $in: ['pending', 'accepted'] }
+    }).select('participants');
+
+    // Extract user IDs that already have connections
+    const connectedUserIds = existingConnections.flatMap(conn => 
+      conn.participants.map(participant => participant.toString())
+    ).filter(id => id !== currentUser._id.toString());
+
+    // Get all other users (excluding current user and those with existing connections)
     const otherUsers = await User.find({
-      _id: { $ne: currentUser._id },
+      _id: { 
+        $ne: currentUser._id,
+        $nin: connectedUserIds // Exclude users with existing connections
+      },
       verified: true, // Only match with verified users
     }).select('-password -aiEmbedding'); // Exclude sensitive data
 
