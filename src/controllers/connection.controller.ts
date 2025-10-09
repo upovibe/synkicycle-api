@@ -175,7 +175,7 @@ export const respondToConnectionRequest = async (req: AuthenticatedRequest, res:
 export const getUserConnections = async (req: AuthenticatedRequest, res: Response, _next: NextFunction): Promise<void> => {
   try {
     const currentUser = req.user;
-    const { status = 'accepted', page = 1, limit = 20 } = req.query;
+    const { status = 'all', page = 1, limit = 20 } = req.query;
 
     if (!currentUser) {
       res.status(401).json({
@@ -191,7 +191,7 @@ export const getUserConnections = async (req: AuthenticatedRequest, res: Respons
 
     // Build query
     const query: Record<string, unknown> = {
-      participants: currentUser._id,
+      participants: { $in: [currentUser._id] },
     };
 
     if (status !== 'all') {
