@@ -88,15 +88,23 @@ export const sendMessage = async (req: AuthenticatedRequest, res: Response, _nex
     await connection.save();
 
     // Populate message with user details
-    await message.populate([
+    const populatedMessage = await message.populate([
       { path: 'senderId', select: 'name username email avatar' },
       { path: 'receiverId', select: 'name username email avatar' },
     ]);
 
+    // Transform to match frontend expectations
+    const messageObj = populatedMessage.toObject();
+    const messageResponse = {
+      ...messageObj,
+      sender: messageObj.senderId,
+      receiver: messageObj.receiverId,
+    };
+
     res.status(201).json({
       success: true,
       message: 'Message sent successfully',
-      data: { message },
+      data: { message: messageResponse },
     });
   } catch (error) {
     console.error('Error sending message:', error);
@@ -174,11 +182,21 @@ export const getMessages = async (req: AuthenticatedRequest, res: Response, _nex
     // Get total count
     const total = await Message.countDocuments({ connectionId });
 
+    // Transform messages to match frontend expectations
+    const transformedMessages = messages.map(msg => {
+      const msgObj = msg.toObject();
+      return {
+        ...msgObj,
+        sender: msgObj.senderId,
+        receiver: msgObj.receiverId,
+      };
+    }).reverse(); // Reverse to show oldest first
+
     res.status(200).json({
       success: true,
       message: 'Messages retrieved successfully',
       data: {
-        messages: messages.reverse(), // Reverse to show oldest first
+        messages: transformedMessages,
         pagination: {
           current: pageNum,
           pages: Math.ceil(total / limitNum),
