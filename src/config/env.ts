@@ -23,8 +23,8 @@ const getEnvConfig = (): EnvConfig => {
     JWT_EXPIRE: process.env.JWT_EXPIRE || '7d',
     CORS_ORIGIN: process.env.CORS_ORIGIN || '*',
     OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
-    RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
-    RATE_LIMIT_MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
+    RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10), 
+    RATE_LIMIT_MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '1000', 10), 
   };
 };
 
