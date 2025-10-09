@@ -15,6 +15,8 @@ import SocketService from '@services/socket.service';
 import authRoutes from '@routes/auth.routes';
 import socketRoutes from '@routes/socket.routes';
 import matchRoutes from '@routes/match.routes';
+import connectionRoutes from '@routes/connection.routes';
+import messageRoutes from '@routes/message.routes';
 
 // Connect to database (for serverless functions)
 connectDB();
@@ -94,6 +96,8 @@ app.get('/health', (_req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/socket', socketRoutes);
 app.use('/api/match-users', matchRoutes);
+app.use('/api/connections', connectionRoutes);
+app.use('/api/messages', messageRoutes);
 
 // 404 Handler
 app.use((_req: Request, res: Response) => {
