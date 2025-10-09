@@ -1,8 +1,16 @@
 import OpenAI from 'openai';
 import { config } from '@config/env';
+import { IUser } from '@models/User';
 
-interface User {
-  _id: string;
+interface MatchSuggestion {
+  userId: string;
+  matchScore: number;
+  reason: string;
+  connectionType: 'professional' | 'social' | 'both';
+}
+
+interface MatchUser {
+  id: string;
   uuid: string;
   username?: string;
   name?: string;
@@ -15,15 +23,8 @@ interface User {
   createdAt: string;
 }
 
-interface MatchSuggestion {
-  userId: string;
-  matchScore: number;
-  reason: string;
-  connectionType: 'professional' | 'social' | 'both';
-}
-
-interface MatchResult {
-  user: User;
+export interface MatchResult {
+  user: MatchUser;
   matchScore: number;
   reason: string;
   connectionType: 'professional' | 'social' | 'both';
@@ -45,8 +46,9 @@ class AIService {
    * @returns Array of match suggestions with reasons
    */
   async generateUserMatches(
-    currentUser: User,
-    potentialMatches: User[]
+    currentUser: IUser,
+    potentialMatches: IUser[],
+    retries = 2
   ): Promise<MatchResult[]> {
     try {
       if (!config.OPENAI_API_KEY) {
@@ -55,20 +57,20 @@ class AIService {
 
       // Prepare current user profile for analysis
       const currentUserProfile = this.formatUserProfile(currentUser);
-      
-      // Prepare potential matches for analysis
-      const matchesProfile = potentialMatches.map(user => ({
-        id: user._id,
-        name: user.name || user.username || 'Anonymous',
-        username: user.username,
-        profession: user.profession,
-        bio: user.bio,
-        interests: user.interests,
-        email: user.email, // For internal reference only
-      }));
+
+        // Prepare potential matches for analysis
+        const matchesProfile = potentialMatches.map((user) => ({
+          id: user._id.toString(),
+          name: user.name || user.username || 'Anonymous',
+          username: user.username,
+          profession: user.profession,
+          bio: user.bio,
+          interests: user.interests,
+          email: user.email, // For internal reference only
+        }));
 
       const prompt = `
-You are an AI networking assistant. Analyze the following user profile and suggest the best professional and social connections from the list of potential matches.
+Analyze the current user's profile and suggest the best professional and social connections from the potential matches.
 
 CURRENT USER PROFILE:
 ${currentUserProfile}
@@ -76,43 +78,47 @@ ${currentUserProfile}
 POTENTIAL MATCHES:
 ${JSON.stringify(matchesProfile, null, 2)}
 
-Please analyze each potential match and provide:
-1. A match score (0-100) based on compatibility
-2. A brief, personalized reason for the connection (1-2 sentences)
-3. The type of connection (professional, social, or both)
-
-Consider factors like:
+Provide match analysis considering:
 - Shared interests and hobbies
 - Complementary professional skills
 - Similar career levels or goals
-- Geographic proximity (if available)
 - Mutual networking opportunities
 
-Return your analysis as a JSON array with this structure:
-[
-  {
-    "userId": "user_id_here",
-    "matchScore": 85,
-    "reason": "Personalized reason for connection",
-    "connectionType": "professional"
-  }
-]
+Return a JSON object with a "matches" array. Each match should have:
+- userId: the user's id from potential matches
+- matchScore: compatibility score (0-100)
+- reason: brief personalized reason (1-2 sentences)
+- connectionType: "professional", "social", or "both"
 
-Only include matches with a score of 60 or higher. Limit to the top 5 matches.
+Only include matches with score 60+. Limit to top 5 matches.
+
+Example response format:
+{
+  "matches": [
+    {
+      "userId": "user_id_here",
+      "matchScore": 85,
+      "reason": "Personalized reason here",
+      "connectionType": "professional"
+    }
+  ]
+}
 `;
 
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-3.5-turbo-1106', // Use newer model that supports JSON mode
         messages: [
           {
             role: 'system',
-            content: 'You are an expert networking assistant that helps professionals find meaningful connections. Always provide helpful, personalized match suggestions.',
+            content:
+              'You are an expert networking assistant that helps professionals find meaningful connections. Always respond with valid JSON only.',
           },
           {
             role: 'user',
             content: prompt,
           },
         ],
+        response_format: { type: 'json_object' }, // Force JSON response
         max_tokens: 1500,
         temperature: 0.7,
       });
@@ -122,58 +128,102 @@ Only include matches with a score of 60 or higher. Limit to the top 5 matches.
         throw new Error('No response from OpenAI');
       }
 
-      // Parse AI response
+      // Parse AI response (JSON mode ensures valid JSON)
       let matchSuggestions;
       try {
-        matchSuggestions = JSON.parse(aiResponse);
+        const parsed = JSON.parse(aiResponse);
+
+        // Extract matches array from response object
+        matchSuggestions = parsed.matches || parsed;
+
+        // Ensure it's an array
+        if (!Array.isArray(matchSuggestions)) {
+          throw new Error('Expected matches array from AI');
+        }
       } catch {
-        console.error('Failed to parse AI response:', aiResponse);
         throw new Error('Invalid AI response format');
       }
 
       // Map AI suggestions back to actual user objects
-      const results = matchSuggestions.map((suggestion: MatchSuggestion) => {
-        const matchedUser = potentialMatches.find(user => 
-          user._id.toString() === suggestion.userId
-        );
-        
-        if (!matchedUser) {
-          return null;
-        }
+      const results: MatchResult[] = matchSuggestions
+        .filter(
+          (suggestion: MatchSuggestion) =>
+            suggestion &&
+            suggestion.userId &&
+            suggestion.matchScore &&
+            suggestion.reason &&
+            suggestion.connectionType
+        )
+        .map((suggestion: MatchSuggestion) => {
+          const matchedUser = potentialMatches.find(
+            (user) => user._id.toString() === suggestion.userId
+          );
 
-        return {
-          user: {
-            id: matchedUser._id,
-            uuid: matchedUser.uuid,
-            username: matchedUser.username,
-            name: matchedUser.name,
-            email: matchedUser.email,
-            profession: matchedUser.profession,
-            bio: matchedUser.bio,
-            interests: matchedUser.interests,
-            avatar: matchedUser.avatar,
-            verified: matchedUser.verified,
-            createdAt: matchedUser.createdAt,
-          },
-          matchScore: suggestion.matchScore,
-          reason: suggestion.reason,
-          connectionType: suggestion.connectionType,
-        };
-      }).filter(Boolean);
+          if (!matchedUser) {
+            return null;
+          }
+
+          return {
+            user: {
+              id: matchedUser._id.toString(),
+              uuid: matchedUser.uuid,
+              username: matchedUser.username,
+              name: matchedUser.name,
+              email: matchedUser.email,
+              profession: matchedUser.profession,
+              bio: matchedUser.bio,
+              interests: matchedUser.interests,
+              avatar: matchedUser.avatar,
+              verified: matchedUser.verified,
+              createdAt: matchedUser.createdAt.toISOString(),
+            },
+            matchScore: suggestion.matchScore,
+            reason: suggestion.reason,
+            connectionType: suggestion.connectionType,
+          } as MatchResult;
+        })
+        .filter((match): match is MatchResult => match !== null);
 
       return results;
     } catch (error) {
-      console.error('AI matching error:', error);
-      throw new Error('Failed to generate AI matches');
+      const err = error as {
+        code?: string;
+        status?: number;
+        message?: string;
+        response?: { data?: { error?: { message?: string } } };
+      };
+
+      // Retry logic for rate limits or temporary errors
+      if (
+        retries > 0 &&
+        (err.code === 'rate_limit_exceeded' ||
+          err.code === 'ECONNRESET' ||
+          err.status === 429 ||
+          err.message?.includes('timeout'))
+      ) {
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
+        return this.generateUserMatches(
+          currentUser,
+          potentialMatches,
+          retries - 1
+        );
+      }
+
+      // If retries exhausted or other error, throw
+      const errorMessage =
+        err.response?.data?.error?.message ||
+        err.message ||
+        'Failed to generate AI matches';
+      throw new Error(errorMessage);
     }
   }
 
   /**
    * Format user profile for AI analysis
    */
-  private formatUserProfile(user: User): string {
+  private formatUserProfile(user: IUser): string {
     const profile = [];
-    
+
     if (user.name) profile.push(`Name: ${user.name}`);
     if (user.username) profile.push(`Username: @${user.username}`);
     if (user.profession) profile.push(`Profession: ${user.profession}`);
@@ -181,7 +231,7 @@ Only include matches with a score of 60 or higher. Limit to the top 5 matches.
     if (user.interests && user.interests.length > 0) {
       profile.push(`Interests: ${user.interests.join(', ')}`);
     }
-    
+
     return profile.join('\n');
   }
 
@@ -189,8 +239,8 @@ Only include matches with a score of 60 or higher. Limit to the top 5 matches.
    * Generate a personalized connection message
    */
   async generateConnectionMessage(
-    currentUser: User,
-    targetUser: User,
+    currentUser: IUser,
+    targetUser: IUser,
     connectionType: 'professional' | 'social' | 'both'
   ): Promise<string> {
     try {
@@ -222,7 +272,8 @@ Keep it natural and avoid being too formal or salesy.
         messages: [
           {
             role: 'system',
-            content: 'You are a professional networking assistant. Generate warm, authentic connection messages that help people build meaningful professional relationships.',
+            content:
+              'You are a professional networking assistant. Generate warm, authentic connection messages that help people build meaningful professional relationships.',
           },
           {
             role: 'user',
@@ -233,10 +284,12 @@ Keep it natural and avoid being too formal or salesy.
         temperature: 0.8,
       });
 
-      return response.choices[0]?.message?.content || 'Hi! I\'d love to connect and learn more about your work.';
-    } catch (error) {
-      console.error('Connection message generation error:', error);
-      return 'Hi! I\'d love to connect and learn more about your work.';
+      return (
+        response.choices[0]?.message?.content ||
+        "Hi! I'd love to connect and learn more about your work."
+      );
+    } catch {
+      return "Hi! I'd love to connect and learn more about your work.";
     }
   }
 }

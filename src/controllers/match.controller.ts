@@ -31,6 +31,8 @@ export const getMatches = async (req: Request, res: Response): Promise<void> => 
         message: 'No other users found for matching',
         data: {
           matches: [],
+          totalUsers: 0,
+          matchesFound: 0,
         },
       });
       return;
@@ -49,10 +51,9 @@ export const getMatches = async (req: Request, res: Response): Promise<void> => 
       },
     });
   } catch (error) {
-    console.error('Get matches error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error generating matches',
+      message: 'Failed to generate AI matches',
       error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
