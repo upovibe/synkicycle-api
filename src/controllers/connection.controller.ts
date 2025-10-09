@@ -79,6 +79,19 @@ export const sendConnectionRequest = async (req: AuthenticatedRequest, res: Resp
         connection,
         message: 'You have a new connection request',
       });
+
+      // Emit event to both users to remove each other from their matches
+      console.log('[Connection Controller] Emitting match:remove to sender:', currentUser._id.toString(), 'remove userId:', receiverId);
+      socketService.sendToUser(currentUser._id.toString(), 'match:remove', {
+        userId: receiverId,
+        message: 'User removed from your matches',
+      });
+
+      console.log('[Connection Controller] Emitting match:remove to receiver:', receiverId, 'remove userId:', currentUser._id.toString());
+      socketService.sendToUser(receiverId, 'match:remove', {
+        userId: currentUser._id.toString(),
+        message: 'User removed from your matches',
+      });
     }
 
     res.status(201).json({
