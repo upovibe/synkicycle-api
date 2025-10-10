@@ -75,6 +75,9 @@ export class SocketService {
         // Update user's socketId in database
         User.findByIdAndUpdate(authSocket.userId, { socketId: socket.id })
           .catch(err => console.error('Error updating user socketId:', err));
+        
+        // Broadcast user online status to all connected clients
+        this.io.emit('user:online', { userId: authSocket.userId });
       }
 
       // Handle user online status
@@ -263,7 +266,10 @@ export class SocketService {
       // Update user's socketId in database
       await User.findByIdAndUpdate(socket.userId, { socketId: null });
       
-      // Notify other users that this user is offline
+      // Broadcast user offline status to all connected clients
+      this.io.emit('user:offline', { userId: socket.userId });
+      
+      // Also emit the old event for backward compatibility
       socket.broadcast.emit('user:status', {
         userId: socket.userId,
         status: 'offline',
