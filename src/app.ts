@@ -6,8 +6,10 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { createServer } from 'http';
 import { config } from '@config/env';
 import connectDB from '@config/database';
+import SocketService from '@services/socket.service';
 
 // Import routes
 import authRoutes from '@routes/auth.routes';
@@ -17,31 +19,13 @@ import connectionRoutes from '@routes/connection.routes';
 import messageRoutes from '@routes/message.routes';
 import statsRoutes from '@routes/stats.routes';
 
-// Database connection state
-let isConnected = false;
+// Connect to database (for serverless functions)
+connectDB();
 
 const app: Application = express();
 
 // Trust proxy - required for Vercel/serverless
 app.set('trust proxy', 1);
-
-// Database connection middleware for serverless functions
-app.use(async (_req: Request, res: Response, next) => {
-  if (!isConnected) {
-    try {
-      await connectDB();
-      isConnected = true;
-    } catch (error) {
-      console.error('Database connection failed:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Database connection failed'
-      });
-      return;
-    }
-  }
-  next();
-});
 
 // Security middleware
 app.use(helmet());
@@ -136,5 +120,15 @@ app.use((err: Error, _req: Request, res: Response, _next: express.NextFunction) 
   });
 });
 
+// Create HTTP server
+const server = createServer(app);
+
+// Initialize Socket.io service
+const socketService = new SocketService(server);
+
+// Make socket service available globally
+global.socketService = socketService;
+
 export default app;
+export { server, socketService };
 
