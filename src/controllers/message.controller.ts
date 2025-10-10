@@ -271,6 +271,18 @@ export const markMessagesAsRead = async (req: AuthenticatedRequest, res: Respons
       readAt: new Date(),
     });
 
+    // Emit socket event to notify sender(s) that messages were read
+    if (result.modifiedCount > 0 && messageIds && Array.isArray(messageIds)) {
+      const { socketService } = await import('../app');
+      
+      // Broadcast to the connection room
+      socketService.broadcast('message-read', {
+        connectionId,
+        messageIds,
+        readBy: currentUser._id,
+      });
+    }
+
     res.status(200).json({
       success: true,
       message: 'Messages marked as read successfully',
