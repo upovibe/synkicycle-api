@@ -83,12 +83,30 @@ export class SocketService {
       });
 
       // Handle user typing
-      socket.on('typing:start', (data: { targetUserId: string }) => {
-        this.handleTypingStart(authSocket, data);
+      socket.on('typing', (data: { connectionId: string }) => {
+        this.handleTyping(authSocket, data);
       });
 
-      socket.on('typing:stop', (data: { targetUserId: string }) => {
-        this.handleTypingStop(authSocket, data);
+      socket.on('stop-typing', (data: { connectionId: string }) => {
+        this.handleStopTyping(authSocket, data);
+      });
+
+      // Join and leave connection rooms
+      socket.on('join-connection', (data: { connectionId: string }) => {
+        socket.join(data.connectionId);
+      });
+
+      socket.on('leave-connection', (data: { connectionId: string }) => {
+        socket.leave(data.connectionId);
+      });
+
+      // Handle real-time message broadcasting
+      socket.on('send-message', (data: { connectionId: string; message: unknown }) => {
+        // Broadcast to all users in the connection room (including sender for multi-device sync)
+        this.io.to(data.connectionId).emit('new-message', {
+          connectionId: data.connectionId,
+          message: data.message,
+        });
       });
 
       // Handle private messages
@@ -140,27 +158,26 @@ export class SocketService {
     });
   }
 
-  private handleTypingStart(socket: AuthenticatedSocket, data: { targetUserId: string }) {
+  private handleTyping(socket: AuthenticatedSocket, data: { connectionId: string }) {
     if (!socket.userId) return;
-
-    const targetSocketId = this.connectedUsers.get(data.targetUserId);
-    if (targetSocketId) {
-      this.io.to(targetSocketId).emit('typing:start', {
-        userId: socket.userId,
-        userName: socket.user?.name,
-      });
-    }
+    
+    // Broadcast typing to all users in the connection room (except sender)
+    socket.to(data.connectionId).emit('user-typing', {
+      connectionId: data.connectionId,
+      userId: socket.userId,
+      isTyping: true,
+    });
   }
 
-  private handleTypingStop(socket: AuthenticatedSocket, data: { targetUserId: string }) {
+  private handleStopTyping(socket: AuthenticatedSocket, data: { connectionId: string }) {
     if (!socket.userId) return;
-
-    const targetSocketId = this.connectedUsers.get(data.targetUserId);
-    if (targetSocketId) {
-      this.io.to(targetSocketId).emit('typing:stop', {
-        userId: socket.userId,
-      });
-    }
+    
+    // Broadcast stop typing to all users in the connection room (except sender)
+    socket.to(data.connectionId).emit('user-stopped-typing', {
+      connectionId: data.connectionId,
+      userId: socket.userId,
+      isTyping: false,
+    });
   }
 
   private async handlePrivateMessage(socket: AuthenticatedSocket, data: { 
