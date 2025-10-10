@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { getNetworkStats, getUserActivity } from '../controllers/stats.controller';
-import { authenticate } from '../middleware/auth.middleware';
+import { protect } from '../middleware/auth.middleware';
 
 const router = Router();
 
 // All routes require authentication
-router.use(authenticate);
+router.use(protect);
 
 // @route   GET /api/stats/network
 // @desc    Get network statistics
