@@ -17,6 +17,7 @@ import socketRoutes from '@routes/socket.routes';
 import matchRoutes from '@routes/match.routes';
 import connectionRoutes from '@routes/connection.routes';
 import messageRoutes from '@routes/message.routes';
+import statsRoutes from '@routes/stats.routes';
 
 // Connect to database (for serverless functions)
 connectDB();
@@ -98,6 +99,7 @@ app.use('/api/socket', socketRoutes);
 app.use('/api/match-users', matchRoutes);
 app.use('/api/connections', connectionRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/stats', statsRoutes);
 
 // 404 Handler
 app.use((_req: Request, res: Response) => {
