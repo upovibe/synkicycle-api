@@ -104,6 +104,8 @@ class ChatbotService {
           return await this.handleProfileHelp(context);
         case 'search_help':
           return await this.handleSearchHelp(message, context);
+        case 'user_info_request':
+          return await this.handleUserInfoRequest(message, context);
         case 'general_networking':
           return await this.handleGeneralNetworking(message, context);
         case 'greeting':
@@ -139,9 +141,10 @@ Classify the intent as one of these:
 1. "connection_request" - User wants to find people to connect with
 2. "profile_help" - User wants help improving their profile
 3. "search_help" - User wants help finding specific people or skills
-4. "general_networking" - User has general networking questions
-5. "greeting" - User is greeting or starting conversation
-6. "general_query" - Other general questions
+4. "user_info_request" - User wants information about a specific person
+5. "general_networking" - User has general networking questions
+6. "greeting" - User is greeting or starting conversation
+7. "general_query" - Other general questions
 
 Respond with JSON: {"type": "intent_type", "confidence": 0.95}
 `;
@@ -421,6 +424,130 @@ Provide a helpful, friendly response. If it's not related to networking, politel
         message: "I'm here to help with your networking needs! What would you like to know?",
         messageType: 'text',
       };
+    }
+  }
+
+  /**
+   * Handle user information request
+   */
+  private async handleUserInfoRequest(
+    message: string,
+    context: ChatContext
+  ): Promise<ChatbotResponse> {
+    try {
+      // Extract user name from message
+      const userName = this.extractUserNameFromMessage(message);
+      
+      if (!userName) {
+        return {
+          message: "I'd be happy to tell you about someone! Could you please specify the person's name? For example, 'Tell me about Alex Kim' or 'What do you know about Sarah Johnson?'",
+          messageType: 'text',
+        };
+      }
+
+      // Search for user by name
+      const targetUser = await User.findOne({
+        $or: [
+          { name: { $regex: userName, $options: 'i' } },
+          { username: { $regex: userName, $options: 'i' } }
+        ]
+      }).select('-password -aiEmbedding -email');
+
+      if (!targetUser) {
+        return {
+          message: `I couldn't find anyone named "${userName}" in our network. They might not be on the platform yet, or the name might be spelled differently. Would you like me to suggest some people you might want to connect with instead?`,
+          messageType: 'text',
+        };
+      }
+
+      // Generate detailed analysis
+      const analysis = await this.generateUserAnalysis(context.user, targetUser);
+
+      return {
+        message: analysis,
+        messageType: 'text',
+      };
+    } catch (error) {
+      console.error('Error handling user info request:', error);
+      return {
+        message: "I'm sorry, I couldn't retrieve that information right now. Please try again later.",
+        messageType: 'text',
+      };
+    }
+  }
+
+  /**
+   * Extract user name from message
+   */
+  private extractUserNameFromMessage(message: string): string | null {
+    const patterns = [
+      /tell me about (.+)/i,
+      /what do you know about (.+)/i,
+      /tell me more about (.+)/i,
+      /who is (.+)/i,
+      /about (.+)/i,
+      /info about (.+)/i,
+    ];
+
+    for (const pattern of patterns) {
+      const match = message.match(pattern);
+      if (match && match[1]) {
+        return match[1].trim();
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Generate detailed user analysis
+   */
+  private async generateUserAnalysis(currentUser: IUser, targetUser: IUser): Promise<string> {
+    const prompt = `
+You are a professional networking assistant. Analyze this user profile and provide detailed, realistic information about how they might relate to the current user.
+
+CURRENT USER:
+- Name: ${currentUser.name || currentUser.username}
+- Profession: ${currentUser.profession || 'Not specified'}
+- Bio: ${currentUser.bio || 'Not provided'}
+- Interests: ${currentUser.interests?.join(', ') || 'None'}
+
+TARGET USER:
+- Name: ${targetUser.name || targetUser.username}
+- Username: ${targetUser.username || 'Not provided'}
+- Profession: ${targetUser.profession || 'Not specified'}
+- Bio: ${targetUser.bio || 'Not provided'}
+- Interests: ${targetUser.interests?.join(', ') || 'None'}
+- Member since: ${new Date(targetUser.createdAt).toLocaleDateString()}
+- Verified: ${targetUser.verified ? 'Yes' : 'No'}
+
+Provide a detailed analysis (2-3 paragraphs) that includes:
+1. Professional background and expertise
+2. Potential connection points and collaboration opportunities
+3. Shared interests or complementary skills
+4. Realistic networking suggestions
+
+Be specific, professional, and realistic. Don't make up information that isn't in their profile.
+`;
+
+    try {
+      const response = await this.openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a professional networking assistant. Provide detailed, realistic analysis of user profiles and potential connections.',
+          },
+          { role: 'user', content: prompt },
+        ],
+        max_tokens: 300,
+        temperature: 0.7,
+      });
+
+      return response.choices[0]?.message?.content || `Here's what I know about ${targetUser.name || targetUser.username}:\n\n${targetUser.profession ? `**Profession:** ${targetUser.profession}\n` : ''}${targetUser.bio ? `**Bio:** ${targetUser.bio}\n` : ''}${targetUser.interests?.length ? `**Interests:** ${targetUser.interests.join(', ')}\n` : ''}\n\nThis person could be a valuable connection for your professional network!`;
+    } catch (error) {
+      console.error('Error generating user analysis:', error);
+      return `Here's what I know about ${targetUser.name || targetUser.username}:\n\n${targetUser.profession ? `**Profession:** ${targetUser.profession}\n` : ''}${targetUser.bio ? `**Bio:** ${targetUser.bio}\n` : ''}${targetUser.interests?.length ? `**Interests:** ${targetUser.interests.join(', ')}\n` : ''}\n\nThis person could be a valuable connection for your professional network!`;
     }
   }
 
