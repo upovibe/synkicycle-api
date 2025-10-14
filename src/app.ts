@@ -18,6 +18,7 @@ import matchRoutes from '@routes/match.routes';
 import connectionRoutes from '@routes/connection.routes';
 import messageRoutes from '@routes/message.routes';
 import statsRoutes from '@routes/stats.routes';
+import chatbotRoutes from '@routes/chatbot.routes';
 
 // Connect to database (for serverless functions)
 connectDB();
@@ -100,6 +101,7 @@ app.use('/api/match-users', matchRoutes);
 app.use('/api/connections', connectionRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 // 404 Handler
 app.use((_req: Request, res: Response) => {
