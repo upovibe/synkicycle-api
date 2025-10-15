@@ -6,13 +6,33 @@ import { Conversation, IConversation } from '@models/Conversation';
 import AIService from './ai.service';
 import { User } from '@models/User';
 
+export interface SuggestedUser {
+  userId: string;
+  name?: string;
+  username?: string;
+  profession?: string;
+  bio?: string;
+  avatar?: string;
+  matchScore?: number;
+  reason?: string;
+  connectionType?: string;
+  matchReason?: string;
+}
+
+export interface ActionData {
+  userId?: string;
+  message?: string;
+  interest?: string;
+  skill?: string;
+}
+
 export interface ChatbotResponse {
   message: string;
   messageType: 'text' | 'suggestion' | 'action' | 'profile_analysis';
   metadata?: {
-    suggestedUsers?: any[];
+    suggestedUsers?: SuggestedUser[];
     actionType?: string;
-    actionData?: any;
+    actionData?: ActionData;
     profileScore?: number;
     profileSuggestions?: string[];
   };
@@ -21,8 +41,12 @@ export interface ChatbotResponse {
 export interface ChatContext {
   user: IUser;
   conversationHistory: IChatMessage[];
-  recentMatches?: any[];
-  userStats?: any;
+  recentMatches?: SuggestedUser[];
+  userStats?: {
+    totalConnections?: number;
+    profileCompleteness?: number;
+    lastActive?: Date;
+  };
 }
 
 class ChatbotService {
@@ -49,7 +73,7 @@ class ChatbotService {
         throw new Error('User not found');
       }
 
-      const conversation = await Conversation.findOne({ conversationId });
+      await Conversation.findOne({ conversationId });
       const recentMessages = await ChatMessage.find({ conversationId })
         .sort({ timestamp: -1 })
         .limit(10);
@@ -138,13 +162,21 @@ User Profile:
 User Message: "${message}"
 
 Classify the intent as one of these:
-1. "connection_request" - User wants to find people to connect with
+1. "connection_request" - User wants to find people to connect with (includes phrases like "can we connect", "find connections", "who should I connect with", "suggest people", "recommend connections", "show me people", "introduce me to", "who can I meet")
 2. "profile_help" - User wants help improving their profile
 3. "search_help" - User wants help finding specific people or skills
 4. "user_info_request" - User wants information about a specific person
 5. "general_networking" - User has general networking questions
 6. "greeting" - User is greeting or starting conversation
 7. "general_query" - Other general questions
+
+Examples of connection_request:
+- "So do you think we can connect"
+- "Who should I connect with?"
+- "Show me some people"
+- "Find me connections"
+- "Recommend someone"
+- "Who can I meet?"
 
 Respond with JSON: {"type": "intent_type", "confidence": 0.95}
 `;
@@ -192,9 +224,9 @@ Respond with JSON: {"type": "intent_type", "confidence": 0.95}
       }
 
       const topMatches = matches.slice(0, 3);
-      const suggestedUsers = topMatches.map(match => ({
+      const suggestedUsers: SuggestedUser[] = topMatches.map(match => ({
         userId: match.user.id,
-        name: match.user.name || match.user.username,
+        name: match.user.name || match.user.username || undefined,
         username: match.user.username,
         profession: match.user.profession,
         bio: match.user.bio,
@@ -205,14 +237,14 @@ Respond with JSON: {"type": "intent_type", "confidence": 0.95}
       }));
 
       return {
-        message: `I found ${matches.length} great connections for you! Here are my top recommendations:`,
+        message: `Absolutely! I found ${matches.length} great connections for you. Here are my top recommendations based on your profile and interests:`,
         messageType: 'suggestion',
         metadata: {
           suggestedUsers,
           actionType: 'view_profile',
         },
       };
-    } catch (error) {
+    } catch {
       return {
         message: "I'm having trouble finding connections right now. Please try again later!",
         messageType: 'text',
@@ -298,9 +330,9 @@ Respond with JSON: {"type": "intent_type", "confidence": 0.95}
         };
       }
 
-      const suggestedUsers = matches.slice(0, 5).map(user => ({
+      const suggestedUsers: SuggestedUser[] = matches.slice(0, 5).map(user => ({
         userId: user._id.toString(),
-        name: user.name || user.username,
+        name: user.name || user.username || undefined,
         username: user.username,
         profession: user.profession,
         bio: user.bio,
@@ -316,7 +348,7 @@ Respond with JSON: {"type": "intent_type", "confidence": 0.95}
           actionType: 'view_profile',
         },
       };
-    } catch (error) {
+    } catch {
       return {
         message: "I'm having trouble searching right now. Please try again!",
         messageType: 'text',
@@ -380,7 +412,7 @@ Provide helpful, actionable advice about professional networking. Keep it conver
     const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
 
     return {
-      message: randomGreeting,
+      message: randomGreeting || "Hello! I'm here to help you with your networking needs!",
       messageType: 'text',
     };
   }
@@ -389,6 +421,17 @@ Provide helpful, actionable advice about professional networking. Keep it conver
    * Handle general queries
    */
   private async handleGeneralQuery(message: string, context: ChatContext): Promise<ChatbotResponse> {
+    // Check if the message contains connection-related keywords
+    const connectionKeywords = ['connect', 'connection', 'meet', 'introduce', 'people', 'network', 'recommend', 'suggest', 'find someone'];
+    const hasConnectionIntent = connectionKeywords.some(keyword => 
+      message.toLowerCase().includes(keyword)
+    );
+
+    // If it seems like a connection request, provide suggestions directly
+    if (hasConnectionIntent) {
+      return await this.handleConnectionRequest(context);
+    }
+
     const prompt = `
 You are a helpful AI assistant for a professional networking platform. The user is asking a question.
 
@@ -560,7 +603,7 @@ Be specific, professional, and realistic. Don't make up information that isn't i
     senderType: 'user' | 'ai',
     message: string,
     messageType: 'text' | 'suggestion' | 'action' | 'profile_analysis',
-    metadata?: any
+    metadata?: ChatbotResponse['metadata']
   ): Promise<void> {
     const chatMessage = new ChatMessage({
       conversationId,
