@@ -101,6 +101,20 @@ export const sendMessage = async (req: AuthenticatedRequest, res: Response, _nex
       receiver: messageObj.receiverId,
     };
 
+    // Emit socket event for real-time message delivery
+    const { socketService } = await import('../app');
+    socketService.broadcast('new-message', {
+      connectionId,
+      message: messageResponse,
+    });
+
+    // Emit unread count update to receiver
+    socketService.sendToUser(receiverId.toString(), 'unread-count-update', {
+      connectionId,
+      unreadCount: 1, // This message adds 1 to unread count
+      action: 'increment'
+    });
+
     res.status(201).json({
       success: true,
       message: 'Message sent successfully',
@@ -281,6 +295,13 @@ export const markMessagesAsRead = async (req: AuthenticatedRequest, res: Respons
         messageIds,
         readBy: currentUser._id,
       });
+
+      // Emit unread count update to current user (decrement)
+      socketService.sendToUser(currentUser._id, 'unread-count-update', {
+        connectionId,
+        unreadCount: messageIds.length,
+        action: 'decrement'
+      });
     }
 
     res.status(200).json({
@@ -295,6 +316,66 @@ export const markMessagesAsRead = async (req: AuthenticatedRequest, res: Respons
     res.status(500).json({
       success: false,
       message: 'Failed to mark messages as read',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+};
+
+/**
+ * @desc    Get unread message count for all connections
+ * @route   GET /api/messages/unread/count
+ * @access  Private
+ */
+export const getUnreadCounts = async (req: AuthenticatedRequest, res: Response, _next: NextFunction): Promise<void> => {
+  try {
+    const currentUser = req.user;
+
+    if (!currentUser) {
+      res.status(401).json({
+        success: false,
+        message: 'Not authorized',
+      });
+      return;
+    }
+
+    // Get all connections where user is a participant
+    const connections = await Connection.find({
+      participants: currentUser._id,
+      status: 'accepted',
+    });
+
+    // Get unread counts for each connection
+    const unreadCounts = await Promise.all(
+      connections.map(async (connection) => {
+        const count = await Message.countDocuments({
+          connectionId: connection._id,
+          receiverId: currentUser._id,
+          status: { $ne: 'read' },
+        });
+
+        return {
+          connectionId: connection._id,
+          unreadCount: count,
+        };
+      })
+    );
+
+    // Filter out connections with 0 unread messages
+    const connectionsWithUnread = unreadCounts.filter(item => item.unreadCount > 0);
+
+    res.status(200).json({
+      success: true,
+      message: 'Unread counts retrieved successfully',
+      data: {
+        unreadCounts: connectionsWithUnread,
+        totalUnread: connectionsWithUnread.reduce((sum, item) => sum + item.unreadCount, 0),
+      },
+    });
+  } catch (error) {
+    console.error('Error getting unread counts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get unread counts',
       error: error instanceof Error ? error.message : 'Unknown error',
     });
   }

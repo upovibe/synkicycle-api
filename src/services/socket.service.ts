@@ -112,6 +112,21 @@ export class SocketService {
         });
       });
 
+      // Handle message read events
+      socket.on('message-read', (data: { connectionId: string; messageIds: string[] }) => {
+        // Broadcast to all users in the connection room
+        this.io.to(data.connectionId).emit('message-read', {
+          connectionId: data.connectionId,
+          messageIds: data.messageIds,
+          readBy: socket.userId,
+        });
+      });
+
+      // Handle unread count requests
+      socket.on('get-unread-counts', async () => {
+        await this.handleUnreadCountsRequest(authSocket);
+      });
+
       // Handle private messages
       socket.on('message:private', (data: { 
         targetUserId: string; 
@@ -302,6 +317,49 @@ export class SocketService {
 
   public broadcast(event: string, data: unknown): void {
     this.io.emit(event, data);
+  }
+
+  private async handleUnreadCountsRequest(socket: AuthenticatedSocket) {
+    if (!socket.userId) return;
+
+    try {
+      const { Connection } = await import('@models/Connection');
+      const { Message } = await import('@models/Message');
+
+      // Get all connections where user is a participant
+      const connections = await Connection.find({
+        participants: socket.userId,
+        status: 'accepted',
+      });
+
+      // Get unread counts for each connection
+      const unreadCounts = await Promise.all(
+        connections.map(async (connection) => {
+          const count = await Message.countDocuments({
+            connectionId: connection._id,
+            receiverId: socket.userId,
+            status: { $ne: 'read' },
+          });
+
+          return {
+            connectionId: connection._id,
+            unreadCount: count,
+          };
+        })
+      );
+
+      // Filter out connections with 0 unread messages
+      const connectionsWithUnread = unreadCounts.filter(item => item.unreadCount > 0);
+
+      // Send unread counts to the requesting socket
+      socket.emit('unread-counts', {
+        unreadCounts: connectionsWithUnread,
+        totalUnread: connectionsWithUnread.reduce((sum, item) => sum + item.unreadCount, 0),
+      });
+    } catch (error) {
+      console.error('Error getting unread counts:', error);
+      socket.emit('error', { message: 'Failed to get unread counts' });
+    }
   }
 }
 
