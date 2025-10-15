@@ -108,12 +108,15 @@ export const sendMessage = async (req: AuthenticatedRequest, res: Response, _nex
       message: messageResponse,
     });
 
-    // Emit unread count update to receiver
-    socketService.sendToUser(receiverId.toString(), 'unread-count-update', {
-      connectionId,
-      unreadCount: 1, // This message adds 1 to unread count
-      action: 'increment'
-    });
+    // Emit unread count update to receiver only if they're not currently viewing this chat
+    const receiverActiveConnection = socketService.getActiveConnection(receiverId.toString());
+    if (receiverActiveConnection !== connectionId) {
+      socketService.sendToUser(receiverId.toString(), 'unread-count-update', {
+        connectionId,
+        unreadCount: 1, // This message adds 1 to unread count
+        action: 'increment'
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -296,6 +299,9 @@ export const markMessagesAsRead = async (req: AuthenticatedRequest, res: Respons
         readBy: currentUser._id,
       });
 
+      // Clear active connection since user is reading messages
+      socketService.clearActiveConnection(currentUser._id);
+      
       // Emit unread count update to current user (decrement)
       socketService.sendToUser(currentUser._id, 'unread-count-update', {
         connectionId,

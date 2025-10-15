@@ -18,6 +18,7 @@ interface AuthenticatedSocket extends Socket {
 export class SocketService {
   private io: SocketIOServer;
   private connectedUsers: Map<string, string> = new Map(); // userId -> socketId
+  private activeConnections: Map<string, string> = new Map(); // userId -> connectionId
 
   constructor(server: HTTPServer) {
     this.io = new SocketIOServer(server, {
@@ -97,10 +98,18 @@ export class SocketService {
       // Join and leave connection rooms
       socket.on('join-connection', (data: { connectionId: string }) => {
         socket.join(data.connectionId);
+        // Track active connection for this user
+        if (socket.userId) {
+          this.setActiveConnection(socket.userId, data.connectionId);
+        }
       });
 
       socket.on('leave-connection', (data: { connectionId: string }) => {
         socket.leave(data.connectionId);
+        // Clear active connection for this user
+        if (socket.userId) {
+          this.clearActiveConnection(socket.userId);
+        }
       });
 
       // Handle real-time message broadcasting
@@ -317,6 +326,18 @@ export class SocketService {
 
   public broadcast(event: string, data: unknown): void {
     this.io.emit(event, data);
+  }
+
+  public setActiveConnection(userId: string, connectionId: string): void {
+    this.activeConnections.set(userId, connectionId);
+  }
+
+  public getActiveConnection(userId: string): string | undefined {
+    return this.activeConnections.get(userId);
+  }
+
+  public clearActiveConnection(userId: string): void {
+    this.activeConnections.delete(userId);
   }
 
   private async handleUnreadCountsRequest(socket: AuthenticatedSocket) {
