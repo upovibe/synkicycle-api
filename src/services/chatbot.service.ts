@@ -150,6 +150,14 @@ class ChatbotService {
    * Analyze user message intent
    */
   private async analyzeIntent(message: string, context: ChatContext): Promise<{ type: string; confidence: number }> {
+    // Check if message mentions a specific person
+    const personMentionPattern = /\b(what do you think about|tell me about|connect with|meet|introduce me to)\s+([A-Z][a-z]+\s+[A-Z][a-z]+|[A-Z][a-z]+)\b/i;
+    const personMention = message.match(personMentionPattern);
+    
+    if (personMention) {
+      return { type: 'user_info_request', confidence: 0.9 };
+    }
+
     const prompt = `
 Analyze the user's message and determine their intent. The user is on a professional networking platform.
 
@@ -177,6 +185,11 @@ Examples of connection_request:
 - "Find me connections"
 - "Recommend someone"
 - "Who can I meet?"
+
+Examples of user_info_request:
+- "What do you think about connecting with Alex Kim"
+- "Tell me about Sarah Johnson"
+- "What do you know about John Smith"
 
 Respond with JSON: {"type": "intent_type", "confidence": 0.95}
 `;
@@ -524,12 +537,16 @@ Provide a helpful, friendly response. If it's not related to networking, politel
    */
   private extractUserNameFromMessage(message: string): string | null {
     const patterns = [
+      /what do you think about connecting with (.+)/i,
       /tell me about (.+)/i,
       /what do you know about (.+)/i,
       /tell me more about (.+)/i,
       /who is (.+)/i,
       /about (.+)/i,
       /info about (.+)/i,
+      /connect with (.+)/i,
+      /meet (.+)/i,
+      /introduce me to (.+)/i,
     ];
 
     for (const pattern of patterns) {
